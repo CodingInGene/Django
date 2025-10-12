@@ -69,7 +69,7 @@
 10. Now check **_localhost:8000/app_**
 
 **Notes-**
-	i. If in firstproject.urls path('', ....) -> then you have to just enter **_localhost:8000_**
+	i. If in firstproject.urls path('', ....) -> then you have to just enter **_localhost:8000_**	<br/>
 	ii. **Slash importance** - In firstproject.urls - app/ not app. It will still work, but you will not be able to name the different webpages. As '/' means anything after 'app'.
 		-> Now if you named "home" your firstapp home, then enter **_localhost:8000/app/home_**
 		
