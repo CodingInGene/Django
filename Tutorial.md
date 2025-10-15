@@ -90,18 +90,19 @@
 
 # Django admin panel
 
-1. Create super user-
+1. **Create super user**-
 	```bash
 	python3 manage.py createsuperuser
 	```
 	Then fill necessary details
 	
 2. Runserver, then type localhost:8000/admin
+	**Note** - Superusers are specific for a specific project. Not available to all projects.
 
 
 # Models
 
-1. On models.py on app create table columns
+1. On models.py on app **create table** columns
 	```python
 	from django.db import models
 	from django.contrib.auth.models import User	#To make foreign key with this table and User table
@@ -118,14 +119,201 @@
 	    status = models.CharField(max_length=1, choices=stat_ch, default="draft")
 	    author = models.ForeignKey(User, on_delete=models.CASCADE)
 	```
-	Then 
-		-> python3 manage.py makemigrations
-		-> python3 manage.py migrate
+	**_Django automatically creates id primary key if other field is not marked as primary key explicitly_**	<br>
+	Then-
+	```bash
+		python3 manage.py makemigrations
+		python3 manage.py migrate
+	```
+	Then register the table-
+		On admin.py -
+		```python
+		from django.contrib import admin
+		from .models import Post		#Name of the table
+		
+		admin.site.register(Post)
+		```
+	Now from admin panel open Table and 'Add Post'. **_(Optional 'Add Post' from admin panel directly, development purpose)_**
+	
+2. **Read table** - (If you created some rows through admin panel)
+	On app.views -
+	```python
+	from .models import NameOfTable
+	
+	def home(request):
+		all_posts = NameOfTable.objects.all()
+		
+		return render(request, "index.html", {"all_data":all_posts})
+	```
+	Then in html -
+	```html
+	<body>
+		{% for i in all_data %}
+		
+		{{i.row1}}
+		{{i.row2}}
+		
+		{% endfor %}
+	```
+	
+3. **Change display style** - On admin page table, rows title will be -> 'Post object(1), (2) ...' (if id is the primary, otherwise whatever is the primary key it will show that).
+	To change that -
+	```python
+	class Post():
+		...
+		...
+		def __str__(self):
+			return self.title
+	```
+	
+4. **Access record with id in url** - _http://localhost:8000/admin/blog/post/_ -> Where 'post' is table name. Then add the id no. you want to find like - _http://localhost:8000/admin/blog/post/2_
+
+5. **Retrieve all data of a single record using a column in url** -
+	**Using Django's slug field**	<br/>
+	1. In urls.py app-
+		```python
+		path("<slug:post_name>/", views.eachpost, name="eachposts")	# 'slug' captures the text on the url and sends it to the views. (post_name is just a var)
+		```
+		<br/>
+	2. In views.py -
+		```python
+		from django.shortcuts import get_object_or_404
+		from .models import NameOfTable
+		
+		def eachpost(request, post_name):
+			post = get_object_or_404(NameOfTable, columnName=post_name, otherColfor_filter="filtrationtext")
+			return render(request, "singlepost.html", {"post":post})
+		```
+		Then type _localhost:8000/1_ or _localhost:8000/text1_ (If no extra url section is added for app, otherwise include them)
+		
+	**Note** - The text must not include space. Also ID can be used here. 
+
+
+6. **Link each posts from main listing page** - **_(Get absolute URL)_**
+
+	**Note** - For step 6, step 5 is needed.
+	
+	1. On app.urls write -
+		```python
+		from ... import ....
+		
+		app_name = "app"
+		
+		path("", views.home, name="homepage")
+		path("<slug:post_name>/", views.eachpost, name="eachposts")	# *1
+		
+		```
+		<br/>
+	2. Now get absolute url. In models.py add -
+		```python
+		from django.shortcuts import reverse
+		
+		class Table(models.Model):
+			col1
+			col2
+			...
+			
+			def get_absolute_url(self):
+				return reverse("app:eachposts", args=[self.id])
+		```
+		<br/>
+	3. views.home -
+		```python
+		all_posts = Post.objects.all()
+		return render(request, "home.html", {"posts":all_posts})
+		```
+	   home.html -
+	   	```html
+	   	{% for i in posts %}
+	   	
+	   	<a href="{{i.get_absolute_url}}">Link to post</a>
+	   	
+	   	{% endfor %}
+	   	<br/>
+	4. Then redirect to 'singlepost.html' like step 5.
+	
+	**_Now we can click the links on homepage to go to each posts page_**
 	
 	
+	**All imp files** -
+	app.views -
+	```python
+	from django.shortcuts import render, get_object_or_404
+	from .models import Post
+
+	# Create your views here.
+	def home(request):
+	    all_posts = Post.objects.all()
+
+	    return render(request, "home.html", {"posts":all_posts})
+
+	def each_post(request, postid):
+	    single_post = get_object_or_404(Post, id=postid)
+	    return render(request, "blogpost.html", {"post":single_post})
+	```
+	    
+	app.urls -
+	```python
+	from django.urls import path
+	from . import views
+
+	app_name="blog"
+
+	urlpatterns = [
+	    path('', views.home, name="homepage"),
+	    path('<slug:postid>/', views.each_post, name="each_posts")
+	]
+	```
 	
+	app.models -
+	```python
+	from django.db import models
+	from django.contrib.auth.models import User
+	from django.urls import reverse
+
+	# Create your models here.
+	class Post(models.Model):
+	    status_choices = [
+		("draft", "Draft"),
+		("published", "Published")
+	    ]
+
+	    title = models.CharField(max_length=30)
+	    author = models.ForeignKey(to=User, on_delete=models.CASCADE)
+	    content = models.TextField()
+	    status = models.CharField(max_length=10, choices=status_choices)
+
+	    def __str__(self):
+		return self.title
+
+	    def get_absolute_url(self):
+		return reverse("blog:each_posts", args=[self.id])    #Get absolute url of each posts using id
+	```
 	
+	home.html -
+	```html
+	<body>
+	    home
+	    {% for i in posts %}
+
+	    <a href="{{i.get_absolute_url}}">Link</a>
+
+	    {% endfor %}
+	</body>
+	```
 	
+	singlepost.html -
+	```html
+	<body>
+	    {{post.title}}
+	    {{post.author}}
+	    {{post.content}}
+	</body>
+	```
+
+
+
+
+
 	
-	
-	
+
