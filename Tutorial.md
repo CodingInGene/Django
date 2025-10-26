@@ -159,7 +159,7 @@
 3. **Change display style** - On admin page table, rows title will be -> 'Post object(1), (2) ...' (if id is the primary, otherwise whatever is the primary key it will show that).
 	To change that -
 	```python
-	class Post():
+	class NameOfTable():
 		...
 		...
 		def __str__(self):
@@ -197,7 +197,7 @@
 		```python
 		from ... import ....
 		
-		app_name = "app"
+		app_name = "app"	#Name can be anything related to your app
 		
 		path("", views.home, name="homepage")
 		path("<slug:post_name>/", views.eachpost, name="eachposts")	# *1
@@ -232,10 +232,17 @@
 	   	<br/>
 	4. Then redirect to 'singlepost.html' like step 5.
 	
-	**_Now we can click the links on homepage to go to each posts page_**
+	_Now we can click the links on homepage to go to each posts page_
+	
+	**Process -**	<br>
+	1. In homepage all records are shown. Then get_absolute_url function is used from models specific table.
+	2. That function uses reverse and the records cols to get absolute url.
+	3. When that url is used in anchor, it asks urls slug field.
+	4. Slug field checks request and sends it to views with the parameter provided in url
+	5. Then views finds the object record with that parameter and sends the record data to another webpage.
 	
 	
-	**All imp files** -
+	**All important files** -
 	app.views -
 	```python
 	from django.shortcuts import render, get_object_or_404
@@ -310,6 +317,102 @@
 	    {{post.content}}
 	</body>
 	```
+	
+7. **Template inheritance** -
+
+8. **Model manager** -
+
+
+# SqLite3 Django shell queries-
+
+1. **To open django shell** - python3 manage.py shell
+
+2. **Import models** - from appname.models import Table
+
+3. **Select * from table** - 
+	```python
+	a = Table.objects.all()		#Returns queryset object
+	for i in a:
+		print(i.id)
+		print(i.title)
+	```
+	Or,
+	```python
+	for i in a:
+		print(i)	#It will return all post objects (If used dunder __str__ it will show according to that)
+	```
+	Or Print all values inside queryset without loop,
+	```python
+	Post.objects.all().values()	#It will show all col values for each record
+	```
+	
+4. **Create** -
+	```python
+	new_record = Table(title="New title", content="New content")
+	
+	new_record.save()	#No data will be created until saved
+	```
+	
+5. **Select * from table where title='abc'** - (Where clause)
+	```python
+	Post.objects.get(title='abc')
+	
+	Post.objects.get(title='abc').content	#Access individual columns after filtering
+	```
+6. **Filter** -
+	```python
+	Post.objects.filter(id=1)
+	
+	Post.objects.filter(id=1).filter(title='abc')	#Multiple filters
+	
+7. **Exclude records** -
+	```python
+	Post.objects.exclude(id=1)	#Exclude id=1 record
+	
+	Post.objects.filter(publish_date__year=2025).exclude(title='abc')	#Filter 2025 records then exclude title 'abc'
+	```
+	
+8. **Order by clause** -
+	``python
+	Post.objects.order_by('status')
+	```
+	
+9. **Delete** -		(After deleting a record the id also gets deleted)
+	```python
+	post = Post.objects.get(id=1)
+	
+	post.delete()
+	
+	#To delete all records
+	Post.objects.all().delete()
+	
+	```
+	
+# Request.GET method
+
+**Retrieve parameters sent by form**
+
+1. Make html form. name in input tag is must as it will be used to match in request querydict.
+	```html
+	<form action="/calculate" method="get">
+		<input name="fname">
+	```
+
+2. Create a new url path that matches the form action
+
+3. Create new view.
+	```python
+	def home(req):
+		...
+		
+	def new_view(req):
+		fname = req.GET.get('fname')
+		lname = req.GET.get('lname')
+		
+		return HttpResponse(fname+lname)
+		
+	```
+
 
 
 
