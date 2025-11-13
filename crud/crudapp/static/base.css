@@ -1,0 +1,217 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+body{
+    margin:0;
+    padding:0;
+    overflow:scroll;
+}
+
+/*Home*/
+/*navbar*/
+.navbar{                /*5% on page*/
+    width:100%;
+    height:5vh;
+    background-color:gray;
+    position:sticky;
+    display:flex;
+    justify-content:left;
+    align-items:center;
+}
+li, button, a, p, h1, h2, table, td, th, tr{
+    font-family:'Montserrat';
+}
+a{
+    text-decoration:none;
+    color:inherit;
+}
+
+.navbar ul{
+    height:100%;
+    display:flex;
+    justify-content:left;
+    align-items:center;
+    margin:0;
+    padding:0;
+}
+.navSpacer{
+    display:block;
+    width:4vw;
+}
+.navbar li{
+    width:7vw;
+    height:100%;
+    list-style-type:none;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.navbar a{
+    height:100%;
+    text-decoration:none;
+    color:white;
+    font-weight:500;
+    display:flex;
+    align-items:center;
+}
+.navbar ul li:hover{
+    background-color:darkgray;
+}
+
+/*Form*/
+.bodyDiv{
+    width:100%;
+    height:60vh;                /*60% on page*/
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.bodyDiv form{
+    width:50%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:start;
+    align-items:center;
+}
+
+.small-i{
+    width:35%;
+    height:3vh;
+    display:block;
+    text-decoration:none;
+    padding-left:10px;
+}
+
+.bodyDiv h1{
+    width:100%;
+    height:max-content;
+    display:flex;
+    justify-content:start;
+    align-items:center;
+}
+.persDiv{                   /*40% on form*/
+    width:100%;
+    height:40%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:start;
+    gap:2vw;
+}
+.addrDiv{                   /*40% on form*/
+    width:100%;
+    height:40%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items: start;
+    gap:2vw;
+}
+.addrDivStack2{
+    width:100%;
+    height:max-content;
+    display:flex;
+    flex-direction:row;
+    justify-content:flex-start;
+    align-items:start;
+    gap:2vw;
+}
+.frmButton{
+    width:100%;
+    height: max-content;
+    display:flex;
+    justify-content: start;
+    align-items: center;
+}
+.bodyDiv button{
+    width:12%;
+    height:4vh;
+}
+
+.fieldSpacer{
+    width:100%;
+    height:5%;
+    display:block;
+    margin:0;
+    padding:0;
+}
+
+
+
+/*Gallery page*/
+.popUpBox{
+    width:100%;
+    height:50vh;
+    display:flex;
+    justify-content:center;
+    align-items:start;
+}
+.popHead{
+    width:100%;
+    height:20%;
+    display:flex;
+    flex-direction:row;
+    justify-content:center;
+    align-items:center;
+}
+.popHeadSpacer{
+    width:20%;
+    height:100%;
+    display:block;
+}
+
+.htSpacer{
+    width:100%;
+    height:15%;
+    min-height:15%;
+    display:block;
+    margin:0;
+    padding:0;
+}
+.tableDiv{
+    width:100%;
+    height:40vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:start;
+    align-items:center;
+    overflow:scroll;
+}
+.tableDiv table{
+    width:50%;
+    height:max-content;
+    border:1px solid gray;
+}
+th, td{
+    height:3vh;
+    text-align:center;
+    border:1px solid gray;
+}
+.bodyTr:hover{
+    background-color:rgb(236, 236, 236);
+    color:inherit;
+}
+
+.dataAndIcons{
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:row;
+    justify-content:center;
+    align-items:start;
+}
+.divIcons{
+    width:100%;
+    height:max-content;
+    display:flex;
+    flex-direction:row;
+    justify-content: center;
+    align-items:center;
+}
+.divIcons div{
+    width:25%;
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save your life</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static '/base.css' %}">
+</head>
+<body>
+    {% csrf_token %}
+
+    <nav class="navbar">
+        <ul>
+            <p class="navSpacer"> </p>
+            <li><a href="#">Home</a></li>
+            <li><a href="gallery/">Database</a></li>
+        </ul>
+    </nav>
+
+    <div class="bodyDiv">
+        <form id="inpform">
+            <p class="fieldSpacer"> </p>
+
+            <h1>Enter your details</h1>
+
+            <div class="persDiv">
+                <input type="text" class="small-i" placeholder="Enter your name" required>
+                <input type="number" class="small-i" placeholder="Enter your number" required>
+                <input type="email" class="small-i" placeholder="Enter your email" required>
+            </div>
+
+            <p class="fieldSpacer"> </p>
+
+            <div class="addrDiv">
+                <div class="addrDivStack2">
+                    <input type="text" class="small-i" placeholder="City">
+                    <input type="text" class="small-i" placeholder="State">
+                </div>
+                <div class="addrDivStack2">
+                    <input type="text" class="small-i" placeholder="Country">
+                    <input type="number" class="small-i" placeholder="Pincode">
+                </div>
+            </div>
+
+            <div class="frmButton"><button id="submitdata">Submit</button></div>
+
+        </form>
+    </div>
+
+
+    {% load static %}
+    <script src="{% static '/base.js' %}"></script>
+</body>
+</html>

@@ -185,6 +185,7 @@
 			return render(request, "singlepost.html", {"post":post})
 		```
 		Then type _localhost:8000/1_ or _localhost:8000/text1_ (If no extra url section is added for app, otherwise include them)
+		**We can use Table.objects.get(args) too, instead of get_object_or_404.**
 		
 	**Note** - The text must not include space. Also ID can be used here. 
 
@@ -214,7 +215,7 @@
 			...
 			
 			def get_absolute_url(self):
-				return reverse("app:eachposts", args=[self.id])
+				return reverse("app:eachposts", args=[self.id])		# appname : slug's viewname(name="...")
 		```
 		<br/>
 	3. views.home -
@@ -412,6 +413,49 @@
 		return HttpResponse(fname+lname)
 		
 	```
+	
+# Request.POST method
+
+1. On html include -
+	```html
+	<head>
+	{% csrf_token %}
+	...
+	</head>
+	
+2. On javascript file
+	```javascript
+	const csrf = document.querySelector("[name=csrfmiddlewaretoken]");
+	```
+
+3. On views -
+	**If JS file sends _application/x-www-form-urlencoded_**
+	```python
+	def func(request):
+		a = request.POST.get("abc")
+	```
+	**If JS file sends _application/json_**
+	```python
+	def func(request):
+		data = json.loads(request.body.decode("utf-8"))
+		a = data.get("abc")
+	```
+
+	
+#Django static caching problem
+
+**Problem** - The browser will cache the static files if used so many times (On local dev). And then if you change something on css after it is cached, the changes will not reflect.
+**Sol.** - Open webpage and clear cache by Ctrl+F5.
+
+
+# File field -
+
+	```python
+	#On models
+	resume = models.FileField(upload_to="uploads/",blank=True)
+	```
+	**The *'uploads_to'* attribute will create a new folder in root to save uploaded files.**
+	
 
 
 

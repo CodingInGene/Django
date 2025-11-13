@@ -1,0 +1,26 @@
+body{
+    margin:0;
+    padding:0;
+}
+
+.bodyDiv{
+    width:100%;
+    height:60vh;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+}
+.formDiv{
+    width:50%;
+    height:100%;
+    display:flex;
+    justify-content: center;
+    align-items: start;
+}
+.formDiv form{
+    width:100%;
+}
+.frmSpacer{
+    width:100%;
+    height:5%;
+}
