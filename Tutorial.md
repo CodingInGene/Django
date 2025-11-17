@@ -442,7 +442,7 @@
 	```
 
 	
-#Django static caching problem
+# Django static caching problem
 
 **Problem** - The browser will cache the static files if used so many times (On local dev). And then if you change something on css after it is cached, the changes will not reflect.
 **Sol.** - Open webpage and clear cache by Ctrl+F5.
@@ -450,12 +450,59 @@
 
 # File field -
 
+	**Content type should be 'multipart/form-data'**
 	```python
 	#On models
 	resume = models.FileField(upload_to="uploads/",blank=True)
 	```
-	**The *'uploads_to'* attribute will create a new folder in root to save uploaded files.**
+	**The *'uploads_to'* attribute will create a new folder in /root to save uploaded files.**
 	
+	**On views** -
+	```python
+	file = request.FILES.get("files")
+	
+	new = Table(file_entry = file)
+	new.save()
+	```
+	
+# TailWind CSS in Django -
+
+**Ref** - https://pypi.org/project/django-tailwind/
+
+1. pip install django-tailwind
+
+2. Open any project then on settings.py add-
+	```python
+	INSTALLED_APPS = [
+		...,
+		'tailwind',
+	]
+	```
+	
+3. python3 manage.py tailwind init
+	_Add the tailwind app name_-
+	```python
+	INSTALLED_APPS = [
+		...,
+		'tailwind',
+		'theme',	#If configured app name is theme during init
+	]
+	
+	TAILWIND_APP_NAME = 'theme'
+	```
+	
+4. python3 manage.py tailwind install
+
+5. On 1st console -
+	python3 manage.py runserver
+   On 2nd console -
+   	python3 manage.py tailwind start
+   	
+   **If it's not working then restart server(1st console).
+   
+6. **(Optional)** If not working -
+	1. console - whereis node
+	2. On settings.py after 'TAILWIND_APP_NAME', add 'NPM_BIN_PATH = /path of node/'.
 
 
 
