@@ -117,8 +117,16 @@
 	    title = models.CharField(max_length=30, primary_key=True)
 	    content = models.TextField()
 	    status = models.CharField(max_length=1, choices=stat_ch, default="draft")
-	    author = models.ForeignKey(User, on_delete=models.CASCADE)
+	    author = models.ForeignKey(to=User, on_delete=models.CASCADE)	#CASCADE means if user gets deleted, all records associated with it will also be deleted.
 	```
+	
+	**Notes** - 
+		1. **CASCADE** means if user gets deleted, all records associated with it will also be deleted.
+		
+		2. On datetime field, **auto_now_add** - adds time when record is being 1st time created. **auto_now** - adds time whenever it's updated.
+		
+		3. **null=True** - allows db to store null values. **blank=True** - allows the field to be empty in the form.
+	
 	**_Django automatically creates id primary key if other field is not marked as primary key explicitly_**	<br>
 	Then-
 	```bash
@@ -190,7 +198,7 @@
 	**Note** - The text must not include space. Also ID can be used here. 
 
 
-6. **Link each posts from main listing page** - **_(Get absolute URL)_**
+6. **Link each posts from main listing page** - **_(Get absolute URL, Slug)_**
 
 	**Note** - For step 6, step 5 is needed.
 	
@@ -319,9 +327,77 @@
 	</body>
 	```
 	
-7. **Template inheritance** -
+# Other ways to pass param to urls -
+	1. In urls -
+	```python
+	app = 'post'
+	
+	urlpatterns = [
+		path('edit/<int:post_id>/', views.editpost, name='edit_post'),
+		path('delete/<int:post_id>/', views.delpost, name='del_post'),
+	]
+	```
+	2. In template -
+	```html
+	{% for i in data %}
+		<a href="{% url 'post:edit_post' i.id %}">Link</a>
+	{% endfor %}
+	```
+	**Notes** - 
+		1. Url on template must be 'app_name:view_pattern_name>'.
+		
+		2. Slug means any data type, where int speifies that the var will have int type.
+		
+		3. In this method, don't need to create get_absolute_url.
+	
+	
+# Template inheritance -
 
-8. **Model manager** -
+1. Create a base.html file in templates. (This will contain all necessary contents that will be inherited to other templates)
+
+2. **Definitions** -
+	```
+	{% extends 'base.html' %}	//Used in working templates to inherit everything from base template
+	
+	{% block var %} {% endblock %}	//Works as a variable for the base file to put content according to the page. Used in 
+	```
+	
+   **Working** -
+	_base.html_
+	```html
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	    <meta charset="UTF-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <title>{% block title %} {% endblock %}</title>
+	</head>
+
+	<body>
+	    {% block body %}
+	    {% endblock %}
+	</body>
+	</html>
+	```
+	
+	_home.html_
+	```
+	{% extends 'base.html' %}
+	
+	{% block title %}Home{% endblock %}
+	
+	{% block body %}
+	hello
+	{% endblock %}
+	```
+	
+  **Notes** - 
+	1. If you don't include a block in working template it will not be used.
+	
+	2. If on base file something is written between blocks, it will act as a default content. If nothing is added on working files then default content will show up.
+
+
+# Model manager -
 
 
 # SqLite3 Django shell queries-
@@ -375,7 +451,7 @@
 	
 8. **Order by clause** -
 	``python
-	Post.objects.order_by('status')
+	Post.objects.order_by('status')	#status -> field name
 	```
 	
 9. **Delete** -		(After deleting a record the id also gets deleted)
@@ -460,6 +536,9 @@
 	**On views** -
 	```python
 	file = request.FILES.get("files")
+	name = request.POST.get("name")
+	
+	print(name, file.name)
 	
 	new = Table(file_entry = file)
 	new.save()
@@ -468,8 +547,9 @@
 # TailWind CSS in Django -
 
 **Ref** - https://pypi.org/project/django-tailwind/
+**_*Node must be installed first_**
 
-1. pip install django-tailwind
+1. -> pip install django-tailwind
 
 2. Open any project then on settings.py add-
 	```python
@@ -479,7 +559,8 @@
 	]
 	```
 	
-3. python3 manage.py tailwind init
+3. -> python3 manage.py tailwind init
+
 	_Add the tailwind app name_-
 	```python
 	INSTALLED_APPS = [
@@ -491,18 +572,101 @@
 	TAILWIND_APP_NAME = 'theme'
 	```
 	
-4. python3 manage.py tailwind install
+4. -> python3 manage.py tailwind install
 
-5. On 1st console -
-	python3 manage.py runserver
+5. Add these on top of html file-
+	```html
+	{% load tailwind_tags %}
+    	{% tailwind_css %}
+    	
+    	<!doctype html>
+    	
+    	<p class="bg-orange-200">Hello</p>
+    	```
+
+6. On 1st console -
+	-> python3 manage.py runserver
    On 2nd console -
-   	python3 manage.py tailwind start
+   	-> python3 manage.py tailwind start
    	
    **If it's not working then restart server(1st console).
    
-6. **(Optional)** If not working -
+7. **(Optional)** If not working -
 	1. console - whereis node
 	2. On settings.py after 'TAILWIND_APP_NAME', add 'NPM_BIN_PATH = /path of node/'.
+	
+   **Notes** -
+   	1. Tailwind and static file css can cause problems, like css file not loading current props after loading. So you can restart the server.
+	
+	
+# Django Forms
+
+_Helps to create forms in frontend using existing models from backend_
+1. Create 'forms.py' on app (where urls.py exists)
+	**Use existing models for forms** -
+	```python
+	from .models import MyModel
+	from django import forms
+	
+	class FormName(forms.ModelForm):
+		class Meta:
+			model = MyModel
+			fields = ['name', 'title', 'image']	# Choose specific fields from models that you want fields for in form
+	```
+	
+2. Add form on views and pass it to template -
+	views.py-
+	```python
+	from .forms import FormName
+	
+	def createform(request):
+		if request.method == "POST":		#If form has been submitted, it will be a post request
+			form = FormName(request.POST, request.FILES)	# Pass what data types it will handle
+			if form.is_valid():
+				new_record = form.save(commit=False)	# commit=False when you want to add more field data that doesn't exist on form
+				new_record.user = request.user		# saving user info on models, user field doesn't exist on forms
+				new_record.save()
+				
+				return redirect("")
+		else:
+			form = FormName()		# If just the url has been called then return the form.
+			
+		return render(request, "abc.html", {"form":form})
+	```
+
+	**Notes** -
+		1. every request has a user info, can be accessed by **request.user**.
+		
+
+# Media configuration
+
+1. In settings.py add-
+	```python
+	MEDIA_URL = '/media/'
+	MEDIA_ROOT = BASE_DIR / 'media'
+	```
+	
+2. In root urls.py add -
+	```python3
+	from django.conf import settings
+	from django.conf.urls.static import static
+	
+	urlpatterns = [
+		...
+	] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)	# Add media paths
+	```
+	
+   **Notes** -
+   	1. media_root - all media images are stored here.
+   	
+   	2. media_url  - django checks for images here, when serving to template.
+   	
+
+# Simple Lazy object error -
+**Error** - <SimpleLazyObject: <django.contrib.auth.models.AnonymousUser object at 0x71905047eef0>>": "Tweet.user" must be a "User"
+
+This error occurs when you are not signed in, nor you have designed login section to redirect when user is logged out. When logged out django returns Anonymous in request.user.	<br/>
+So in the same tab go to admin panel, if it asks to login, then login. The problem should be gone for some time (probably 30mins).
 
 
 
