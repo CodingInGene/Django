@@ -1,4 +1,5 @@
 # Tutorial for Django
+**This tutorial contains errors solution too**
 
 
 # The Beginning
@@ -251,81 +252,50 @@
 	5. Then views finds the object record with that parameter and sends the record data to another webpage.
 	
 	
-	**All important files** -
-	app.views -
-	```python
-	from django.shortcuts import render, get_object_or_404
-	from .models import Post
+7. **Handling multiple tables** -
 
-	# Create your views here.
-	def home(request):
-	    all_posts = Post.objects.all()
-
-	    return render(request, "home.html", {"posts":all_posts})
-
-	def each_post(request, postid):
-	    single_post = get_object_or_404(Post, id=postid)
-	    return render(request, "blogpost.html", {"post":single_post})
+	models.py-
 	```
-	    
-	app.urls -
-	```python
-	from django.urls import path
-	from . import views
-
-	app_name="blog"
-
-	urlpatterns = [
-	    path('', views.home, name="homepage"),
-	    path('<slug:postid>/', views.each_post, name="each_posts")
-	]
-	```
-	
-	app.models -
-	```python
-	from django.db import models
-	from django.contrib.auth.models import User
-	from django.urls import reverse
-
-	# Create your models here.
 	class Post(models.Model):
-	    status_choices = [
-		("draft", "Draft"),
-		("published", "Published")
-	    ]
-
-	    title = models.CharField(max_length=30)
-	    author = models.ForeignKey(to=User, on_delete=models.CASCADE)
-	    content = models.TextField()
-	    status = models.CharField(max_length=10, choices=status_choices)
+	    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
+	    content = models.TextField(max_length=240)
+	    image = models.ImageField(upload_to='photos/')
+	    created_at = models.DateTimeField(auto_now_add=True)
+	    modified_at = models.DateTimeField(auto_now=True)
 
 	    def __str__(self):
-		return self.title
+		return self.content[:10]+str(self.id)
 
-	    def get_absolute_url(self):
-		return reverse("blog:each_posts", args=[self.id])    #Get absolute url of each posts using id
+	class Interaction(models.Model):
+	    post = models.ForeignKey(to=Post, on_delete=models.CASCADE, related_name='interaction')
+	    likes = models.IntegerField()
+
+	    def __str__(self):
+		return self.post.content[:5]+" "+str(self.likes)
 	```
 	
-	home.html -
-	```html
-	<body>
-	    home
-	    {% for i in posts %}
+	1. **In views merge two table queries in a dict, then pass it to template** -
+		views-
+		```
+		posts = Post.objects.all()
+		interactions = Interaction.objects.all()
+		
+		post_data = {'posts':posts, 'interactions':interactions}
+		
+		return render(req, 'abc.html', post_data)
+		```
+		
+	2. **Now we can access values of both tables because they are interconnected** -
+		```html
+		{% for post in posts %}
+			{{post.content}}
+			
+			{{post.interaction.first.likes}}
+		{% endfor %}
+		
+	**Notes** -
+		1. To access 'Interaction' table from 'Post' we need to add **'related_name'** on the foreignkey. Then using that name we can access all fields of the table.
 
-	    <a href="{{i.get_absolute_url}}">Link</a>
-
-	    {% endfor %}
-	</body>
-	```
-	
-	singlepost.html -
-	```html
-	<body>
-	    {{post.title}}
-	    {{post.author}}
-	    {{post.content}}
-	</body>
-	```
 	
 # Other ways to pass param to urls -
 	1. In urls -
@@ -450,8 +420,14 @@
 	```
 	
 8. **Order by clause** -
+	**Ascending order** -
 	``python
 	Post.objects.order_by('status')	#status -> field name
+	```
+	
+	**Descending order** -
+	``python
+	Post.objects.order_by('-status')
 	```
 	
 9. **Delete** -		(After deleting a record the id also gets deleted)
@@ -574,12 +550,13 @@
 	
 4. -> python3 manage.py tailwind install
 
-5. Add these on top of html file-
+5. Add these on **head** (When added before doctype, the page will open in quirks mode in browser, without xhtml) -
 	```html
-	{% load tailwind_tags %}
-    	{% tailwind_css %}
-    	
     	<!doctype html>
+    	<head>
+    		{% load tailwind_tags %}
+	    	{% tailwind_css %}
+	</head>
     	
     	<p class="bg-orange-200">Hello</p>
     	```
@@ -592,8 +569,11 @@
    **If it's not working then restart server(1st console).
    
 7. **(Optional)** If not working -
-	1. console - whereis node
-	2. On settings.py after 'TAILWIND_APP_NAME', add 'NPM_BIN_PATH = /path of node/'.
+	1. Set proper node env var.
+	
+	2. console - whereis node
+	
+	3. On settings.py after 'TAILWIND_APP_NAME', add 'NPM_BIN_PATH = /path of node/'.
 	
    **Notes** -
    	1. Tailwind and static file css can cause problems, like css file not loading current props after loading. So you can restart the server.
@@ -602,6 +582,8 @@
 # Django Forms
 
 _Helps to create forms in frontend using existing models from backend_
+
+**Create form**
 1. Create 'forms.py' on app (where urls.py exists)
 	**Use existing models for forms** -
 	```python
@@ -633,9 +615,53 @@ _Helps to create forms in frontend using existing models from backend_
 			
 		return render(request, "abc.html", {"form":form})
 	```
+	**Notes (file not saving issue)** - **for create post template, must add enctype="multipart/form-data". Other wise file will not be saved and will be empty every time clicked on submit btn.**
+	
+**Edit form** -
+
+1. Pass an instance of the record -
+	views.py -
+	```
+	def editform(request, postid):
+		record = get_object_or_404(Table, id=postid, user=request.user)
+		if request.method == 'POST':
+			form = Form(request.POST)
+			form.save()
+			
+			return redirect("/")
+		else:
+			form = Form(instance=record)
+		return render(..., {'form':form})
+	```
 
 	**Notes** -
 		1. every request has a user info, can be accessed by **request.user**.
+		
+**Form rendering** -
+
+_Can be rendered using just {{form}}, but this has limited functionality in design_
+
+**This will render every single component of form one by one, then we can apply styling.
+
+1. Old < v5.0 -
+	```html
+	<form>
+		{{form.email.label_tag}}
+		{{field.label}}
+		{{field}}
+	</form>
+	```
+	
+2. v5.0
+	```html
+	<form>
+	{% for field in form %}
+		
+		{{field.as_field_group}}
+		
+	{% endfor %}
+	</form>
+	```
 		
 
 # Media configuration
@@ -663,10 +689,181 @@ _Helps to create forms in frontend using existing models from backend_
    	
 
 # Simple Lazy object error -
-**Error** - <SimpleLazyObject: <django.contrib.auth.models.AnonymousUser object at 0x71905047eef0>>": "Tweet.user" must be a "User"
+**Error** - "<SimpleLazyObject: <django.contrib.auth.models.AnonymousUser object at 0x71905047eef0>>": "Tweet.user" must be a "User"
 
-This error occurs when you are not signed in, nor you have designed login section to redirect when user is logged out. When logged out django returns Anonymous in request.user.	<br/>
+This error occurs when you are not signed in, nor you have designed login section to redirect when user is logged out. When logged out d=jango returns Anonymous in request.user.	<br/>
 So in the same tab go to admin panel, if it asks to login, then login. The problem should be gone for some time (probably 30mins).
+
+
+# Login protect contents -
+
+	views.py-
+	```python
+	from django.contrib.auth.decorators import login_required
+	
+	@login_required
+	def createpost():
+		...
+	```
+	**Now when no user is logged in django will redirect user to login page for that view. Redirects to default url accounts/login.**
+	
+	
+# User registration, login, logouts -
+
+	**To make pages for login, register etc the templates must be in root folder** -
+	```
+	->projectname
+		->projectname
+			settings.py
+			asgi.py
+			...
+					
+		->app
+			->templates
+				->home.html
+				->about.html
+				
+		->db.sqlite3
+		
+		->templates
+			->registration
+				->login.html
+				->register.html
+				->logout.html		//Optional
+	```
+	**Note** - Django auth looks for templates in templates/registration by default.
+	
+	**Settings.py** -
+	On templates section specify where to look for templates first -
+	```
+	TEMPLATES = [
+		'DIRS' : [BASE_DIR / 'templates']
+		
+	]
+	
+	
+	LOGIN_URL = 'accounts/login'
+	
+	# LOGIN_REDIRECT_URL = 'home_view_name'	# The view name for a page where you want to redirect, in views.py
+	
+	LOGOUT_REDIRECT_URL = '/'	# home page url
+	```
+	**Notes** - login redirect, logout redirect pages are optional. Django automatically redirects to the previously clicked page which was login protected, when logging in.
+	
+	**Urls.py projects** -
+	add another path for accounts
+	```
+	path('accounts/', include('django.contrib.auth.urls'))
+	```
+	
+	**Forms.py** -
+	```python
+	from django import forms
+	from django.contrib.auth.forms import UserCreationForm
+	from django.contrib.auth.models import User
+	
+	class UserRegistrationForm(UserCreationForm):
+	email = forms.EmailField()
+		class Meta:
+			model = User
+			fields = ('username', 'email', 'password1', 'password2')
+	```
+	**Note** - UserCreationForm is a builtin form. When referencing builtin forms we have to use tuples. For custom forms use list.
+	
+1. **Register** -
+	urls.py app -
+	```python
+	path('register/', views.register, name='register_page')
+	```
+	
+	views.py -
+	```python
+	from .forms import UserRegistrationForm
+	from django.contrib.auth import login
+	
+	def register(request):
+		if request.method=='POST':
+			form = UserRegistrationForm(request.POST)
+			if form.is_valid():
+				user = form.save()
+				
+				login(request, user)
+		else:
+			form = UserRegistrationForm()
+		
+		return render(request, 'registration/register.html', {'form':form})
+	```
+	
+	register.html -
+	```html
+	<form method="post" enctype="multipart/form-data" class="w-full h-max flex flex-col justify-center items-center">
+		{% csrf_token %}
+		
+		{% for field in form %}
+
+			{{field.as_field_group}}
+
+		{% endfor %}
+
+		<button class="btn btn-success shadow-none w-20">Register</button>
+	 </form>
+	 ```
+	 
+	**Notes** -
+		1. login method takes request and the user, from these it automatically logs in the user. form.save returns instance of the user, otherwise this error will appear 'ModelFormOptions' object has no attribute 'pk'.
+		
+		2. Here 'registration/register.html' because settings is BASE_DIR / templates, which points to root/templates and in templates/registration register.html exists.
+		
+2. **Login** -
+
+	Don't need to have any views for this.
+	
+	1. Just create a login.html in registrations. Use forms like other pages.
+	
+	2. The views which are login protected will automatically redirect user to login page.
+	
+	3. To manually go to login page - _url:8000/accounts/login_.
+	
+3. **Logout** -
+
+	Don't need to have any views for this. Logout is a form provided by django.
+	
+	1. Use a post form - action -{% url 'logout' %}, with csrf token, then use a submit button.
+	
+4. **Conditional rendering for specific users** -
+
+	1. If you have for loop, and want to show some elements conditionally then -
+		```html
+		{% for i in posts %}
+			{% if i.user == user %}
+				
+				<button>Show it to user</button>
+				
+			{% else %}
+				show nothing
+				
+			{% endif %}
+				
+		{% endfor %}
+		```
+		
+	**Notes** - 
+		1. It's optional to use else, but must to use endif.
+		
+		2. user can be always accessed, because it's part of request.
+		
+	
+	2. **Checking if user is logged in** -
+		```html
+		{% if user.is_authenticated %}
+			<a href="{% url 'logout' %}>Logout</a>
+		{% else %}
+			<a href="/accounts/login">Login</a>
+			<a href="/register/">Register</a>
+			
+		{% endif %}
+		
+
 
 
 
