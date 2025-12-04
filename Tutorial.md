@@ -273,6 +273,7 @@
 	    def __str__(self):
 		return self.post.content[:5]+" "+str(self.likes)
 	```
+	**Note** - Related name must be used on foreign keys only. It helps to query fields on templates.
 	
 	1. **In views merge two table queries in a dict, then pass it to template** -
 		views-
@@ -647,9 +648,11 @@ _Can be rendered using just {{form}}, but this has limited functionality in desi
 	```html
 	<form>
 		{{form.email.label_tag}}
-		{{field.label}}
-		{{field}}
-	</form>
+		{{form.email}}
+		
+		{% if form.email.errors %}
+                    <p class="text-ptext text-red-500">{{form.email.errors}}</p>
+                {% endif %}
 	```
 	
 2. v5.0
@@ -711,7 +714,7 @@ So in the same tab go to admin panel, if it asks to login, then login. The probl
 # User registration, login, logouts -
 
 	**To make pages for login, register etc the templates must be in root folder** -
-	```
+	```python
 	->projectname
 		->projectname
 			settings.py
@@ -863,6 +866,109 @@ So in the same tab go to admin panel, if it asks to login, then login. The probl
 			
 		{% endif %}
 		
+
+# Universally Unique ID -
+
+It is a 128bit 32 char long string, to act as a id. This eliminates predictability of id, removing the use of auto incrementing id, improving security.
+
+	models.py -
+	```python
+	import uuid
+	
+	class Post(models.Model:
+		id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+		
+	```
+	
+1. **It can be defined in a base model and called to main model from the base model** -
+	```
+	->PROJECT root
+	->base
+		->models.py -
+			import uuid
+	
+			class BaseModel(models.Model:
+				id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+				... additional fields ...
+				
+				class Meta:
+					abstract = True
+		
+	->app
+	->project
+	```
+	
+	**Note - Abstract in meta class makes django to think of this as a class not a model**
+	
+	app-models.py -
+	```
+	from base.models import BaseModel
+	
+	class Post(BaseModel):
+		name = models.CharField(...)
+	```
+	
+	**Note** - These are called _helpers_, they improve code reusability.
+
+**UUID versions**
+```
+Version		Description									Use Case
+UUID1		Generated using the current timestamp and the MAC address of the host.		Suitable for scenarios requiring time-based sorting.
+UUID2		Similar to UUID1 but includes POSIX UID/GID. Rarely used.			Specific use cases in DCE security.
+UUID3		Generated using an MD5 hash of a namespace and a name.				Useful for consistent UUIDs based on input.
+UUID4		Randomly generated UUID.							Commonly used for general purposes due to its randomness.
+UUID5		Similar to UUID3 but uses SHA-1 hashing instead of MD5.				Provides consistent UUIDs based on input.
+```
+		
+		
+# Table's reverse relations-
+
+	models.py-
+	```
+	from django.db import models
+	from django.contrib.auth.models import User
+
+	# Create your models here.
+	class Category(models.Model):
+	    name = models.CharField(max_length=30)
+	    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
+	    created_at = models.DateTimeField(auto_now_add=True)
+	    modified_at = models.DateTimeField(auto_now=True)
+
+	    def __str__(self):
+		return self.name+"("+self.user.username+")"
+
+	class Portfolio(models.Model):
+	    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
+	    title = models.CharField(max_length=50)
+	    description = models.TextField(max_length=240)
+	    file = models.FileField(upload_to='photos')
+	    created_at = models.DateTimeField(auto_now_add=True)
+	    modified_at = models.DateTimeField(auto_now=True)
+	    category = models.ForeignKey(to=Category, on_delete=models.CASCADE, related_name='category_on_portfolio')
+
+	    def __str__(self):
+		return self.title
+	```
+	
+	
+# Django ORM(object relational mapping) - Advanced queries
+
+1. Limit records - records = Model.objects.all()[0:100]		**Select only 100 records through slicing**
+
+2. Filter by greater or less than - 
+	i. records = Model.objects.filter(views__gte = 10)	**Select records which 'views' field values are greater than equals 10. double '_' means a speial django keyword.**
+	
+	ii. records = Model.objects.filter(views__gte = 10).exclude(title='abc')	**Select 'views'>=10 but exclude title 'abc'.**
+	
+	iii. records = Model.objects.filter(views__lte = 40)	**Select records with 'views'<40.**
+	
+**New database and tables** -
+
+1. Department
+	department = charfield
+	
+2. 
 
 
 
