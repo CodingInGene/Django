@@ -42,5 +42,92 @@ _Then use querySeletor on js to run event._
 		```javascript
 		e.target.dataset.id
 		```
+		
+		
+# Files in JS
+
+	```html
+	<input type="file" id="file">
+	```
+	
+	```javascript
+	const file = document.getElementById("file");
+	
+	//XHR
+	xhr.open(....)
+	....
+	....
+	
+	const formData = new FormData();	//Form data obj to send forms
+	
+	for (const file of file.files){
+		console.log(file.name);
+		formData.append("file", file);
+	}
+	
+	xhr.send(formData);
+	```
+	**Don't set any Content-Type on xhr, it will be automatically set according to the need. Otherwise it will throw error (Invalid boundary in multipart: None) django.**
+	
+	**On django -**
+	f = request.FILES.get("file")
+	print(f.name)
+	
+	
+# AJAX to django
+
+**JS**
+
+**get method** -
+	```
+	const xhr = new XMLHttpRequest();
+        xhr.open("post", form_url, async=true)
+
+        xhr.setRequestHeader("Content-type", "application/json");
+
+        xhr.onload = function(){
+            console.log(this.responseText, this.status);
+            if(this.status == 404){
+                alert("Cannot delete item");
+            }
+        }
+
+        xhr.send();
+        ```
+        
+**post method** -
+	
+	**application/json** - stringify json in params
+	```
+	const xhr = new XMLHttpRequest();
+        xhr.open("post", form_url, async=true)
+
+        xhr.setRequestHeader("Content-type", "application/json");
+        xhr.setRequestHeader("X-CSRFToken", csrf);
+
+        xhr.onload = function(){
+            console.log(this.responseText, this.status);
+            if(this.status == 404){
+                alert("Cannot delete item");
+            }
+        }
+
+        params = JSON.stringify({"id":id, "csrftoken":csrf});
+
+        xhr.send(params);
+        ```
+        
+       **application/x-www-form-urlencoded (use backtick)** - params = `id=${id}&name=${name}`
+       
+       
+# Displaying PDFs in django template - (Allow x-frame-origins)
+
+One of the reason why pdf files are not displaying in browser can be - 'X-Frame-Options : Deny'. Open localhost:8000/fileurl and check under network(inspect) in Response headers.
+
+**In settings.py** - Add -> X_FRAME_OPTIONS = 'SAMEORIGIN'
+        
+	
+	
+	
 
 

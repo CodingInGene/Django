@@ -300,20 +300,20 @@
 	
 # Other ways to pass param to urls -
 	1. In urls -
-	```python
-	app = 'post'
-	
-	urlpatterns = [
-		path('edit/<int:post_id>/', views.editpost, name='edit_post'),
-		path('delete/<int:post_id>/', views.delpost, name='del_post'),
-	]
-	```
-	2. In template -
-	```html
-	{% for i in data %}
-		<a href="{% url 'post:edit_post' i.id %}">Link</a>
-	{% endfor %}
-	```
+		```python
+		app = 'post'
+		
+		urlpatterns = [
+			path('edit/<int:post_id>/', views.editpost, name='edit_post'),
+			path('delete/<int:post_id>/', views.delpost, name='del_post'),
+		]
+		```
+		2. In template -
+		```html
+		{% for i in data %}
+			<a href="{% url 'post:edit_post' i.id %}">Link</a>
+		{% endfor %}
+		```
 	**Notes** - 
 		1. Url on template must be 'app_name:view_pattern_name>'.
 		
@@ -333,23 +333,23 @@
 	{% block var %} {% endblock %}	//Works as a variable for the base file to put content according to the page. Used in 
 	```
 	
-   **Working** -
+	**Working** -
 	_base.html_
-	```html
-	<!DOCTYPE html>
-	<html lang="en">
-	<head>
-	    <meta charset="UTF-8">
-	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	    <title>{% block title %} {% endblock %}</title>
-	</head>
+		```html
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+		    <meta charset="UTF-8">
+		    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		    <title>{% block title %} {% endblock %}</title>
+		</head>
 
-	<body>
-	    {% block body %}
-	    {% endblock %}
-	</body>
-	</html>
-	```
+		<body>
+		    {% block body %}
+		    {% endblock %}
+		</body>
+		</html>
+		```
 	
 	_home.html_
 	```
@@ -362,10 +362,44 @@
 	{% endblock %}
 	```
 	
-  **Notes** - 
-	1. If you don't include a block in working template it will not be used.
+3. **Making components** - Using **_Include_**
+
+	```
+	->templates
+		->base.html
+		->aboutus.html
+		
+		->components
+			->navcomponent.html
+				<div>
+					<p> {{nav_title}} </p>
+					
+					<form>
+						<label>Django form</label>
+						
+						{{ comp_form.name }}
+						
+						{{ comp_form.errors }}
+					</form>
+				</div>
+	```
 	
-	2. If on base file something is written between blocks, it will act as a default content. If nothing is added on working files then default content will show up.
+	**Now include this component on main file**
+	aboutus.html -
+		```
+		{% extends 'base.html' %}
+		
+		...
+		
+		{% include '/components/navcomponent.html' with nav_title="New component" comp_form=Djangoform %}
+		```
+	**Note** - pass all vars one by one with spaces aftr using with in _include_.
+	
+	
+**Notes** - 
+1. If you don't include a block in working template it will not be used.
+	
+2. If on base file something is written between blocks, it will act as a default content. If nothing is added on working files then default content will show up.
 
 
 # Model manager -
@@ -469,12 +503,12 @@
 	
 # Request.POST method
 
-1. On html include -
+1. On html include -	**{% csrf_token %} should be included in form(if using django form) or body. It creates <input type="hidden" name="csrfmiddlewaretoken" value="value of csrf">**
 	```html
-	<head>
+	<body>
 	{% csrf_token %}
 	...
-	</head>
+	</body>
 	
 2. On javascript file
 	```javascript
@@ -503,7 +537,7 @@
 
 # File field -
 
-	**Content type should be 'multipart/form-data'**
+**Content type should be 'multipart/form-data'**
 	```python
 	#On models
 	resume = models.FileField(upload_to="uploads/",blank=True)
@@ -665,7 +699,86 @@ _Can be rendered using just {{form}}, but this has limited functionality in desi
 	{% endfor %}
 	</form>
 	```
+	
+3. **Errors display** -
+
+	**For register page** - it can hav more than one error. So to style all errors and list them without their headers -
+	```html
+	<div class="text-red-600 m-0 p-0 h-max flex flex-col gap-2 errorDiv">
+		{% for fields in registrationform %}
+		    {% for error in fields.errors %}
+			<p class="p-0 m-0">{{error}}</p>
+		    {% endfor %}
+		{% endfor %}
+	</div>
+        ```
+        
+	**For login page** - as it can have only one error (username, password are not correct) -
+	```html
+	<div class="text-red-600 m-0 p-0 h-max flex flex-col gap-2 errorDiv1">   <!-- For non field errors-->
+                {{form.non_field_errors}}
+        </div>
+	```
+        
+	**Notes** - Non correct username or pass are **non_field_errors**.
+	
+**Widgets** - Custom properties (placeholder, custom-class css etc)
+
+1. in forms-
+	```
+	class Form(forms.ModelForm):
+		class Meta:
+			name = ...
+			fields = {'field1', 'field2', ...}
+
+			widgets = {
+				'field1':forms.TextInput(attrs={'placeholder':'Enter something'}),
+			}
+	```
+	
+2. Custom or inherited fields - UserCreationForm
+	```python
+	class UserRegistration(UserCreationForm):
+	    email = forms.EmailField()
+	    class Meta:
+		model = User
+		fields = ('first_name', 'last_name', 'username', 'email', 'password1', 'password2')
+		widgets = {
+		    'first_name':forms.TextInput(attrs={'placeholder':'Enter first name'}),
+		    'last_name':forms.TextInput(attrs={'placeholder':'Enter last name'}),
+		    'username':forms.TextInput(attrs={'placeholder':'Enter unique username'}),
+		}
+
+	    # Adding widgets
+	    def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.fields['email'].widget.attrs.update({'placeholder':'Enter email'})
+
+		self.fields['password1'].widget.attrs.update({'placeholder':'Enter password'})
+
+		self.fields['password2'].widget.attrs.update({'placeholder':'Enter Again'})
+        ```
+        
+        **Notes** - For custom fields(email), already present fields in parent form(pass1, pass2) django ignores widgets. So we have to override init.
+
+
+	
+3. **form fields can be disabled** -
+	in views.py-
+	```
+	form = FormCreation()
+	
+	form.fields['col_to_disable'].disabled = True
+	```
+	
+4. Truncate string -
+	in html -
+	```html
+	{% for i in records %}
+		{{ i.description|truncatechars:10 }}
 		
+
 
 # Media configuration
 
@@ -675,7 +788,7 @@ _Can be rendered using just {{form}}, but this has limited functionality in desi
 	MEDIA_ROOT = BASE_DIR / 'media'
 	```
 	
-2. In root urls.py add -
+2. In projects urls.py add -
 	```python3
 	from django.conf import settings
 	from django.conf.urls.static import static
@@ -694,7 +807,7 @@ _Can be rendered using just {{form}}, but this has limited functionality in desi
 # Simple Lazy object error -
 **Error** - "<SimpleLazyObject: <django.contrib.auth.models.AnonymousUser object at 0x71905047eef0>>": "Tweet.user" must be a "User"
 
-This error occurs when you are not signed in, nor you have designed login section to redirect when user is logged out. When logged out d=jango returns Anonymous in request.user.	<br/>
+This error occurs when you are not signed in, nor you have designed login section to redirect when user is logged out. When logged out django returns Anonymous in request.user.	<br/>
 So in the same tab go to admin panel, if it asks to login, then login. The problem should be gone for some time (probably 30mins).
 
 
@@ -827,9 +940,23 @@ So in the same tab go to admin panel, if it asks to login, then login. The probl
 	
 	3. To manually go to login page - _url:8000/accounts/login_.
 	
+	4. Just this will work - Django itself provides login form to login page.
+		```html
+		<form method="post">
+			{% csrf_token %}
+
+			{% for fields in form %}
+			    {{fields.label}}
+			    {{fields}}
+			{% endfor %}
+
+			<button type="submit">Sign in</button>
+	    	</form>
+            	```
+	
 3. **Logout** -
 
-	Don't need to have any views for this. Logout is a form provided by django.
+	Don't need to have any views for this. Logout is a form provided by django. But you have to include /accounts (above) first.
 	
 	1. Use a post form - action -{% url 'logout' %}, with csrf token, then use a submit button.
 	
@@ -912,12 +1039,12 @@ It is a 128bit 32 char long string, to act as a id. This eliminates predictabili
 
 **UUID versions**
 ```
-Version		Description									Use Case
-UUID1		Generated using the current timestamp and the MAC address of the host.		Suitable for scenarios requiring time-based sorting.
-UUID2		Similar to UUID1 but includes POSIX UID/GID. Rarely used.			Specific use cases in DCE security.
-UUID3		Generated using an MD5 hash of a namespace and a name.				Useful for consistent UUIDs based on input.
-UUID4		Randomly generated UUID.							Commonly used for general purposes due to its randomness.
-UUID5		Similar to UUID3 but uses SHA-1 hashing instead of MD5.				Provides consistent UUIDs based on input.
+Version		Description                                                           	Use Case
+UUID1		Generated using the current timestamp and the MAC address of the host.	Suitable for scenarios requiring time-based sorting.
+UUID2		Similar to UUID1 but includes POSIX UID/GID. Rarely used.	      	Specific use cases in DCE security.
+UUID3		Generated using an MD5 hash of a namespace and a name.		      	Useful for consistent UUIDs based on input.
+UUID4		Randomly generated UUID.					      	Commonly used for general purposes due to its randomness.
+UUID5		Similar to UUID3 but uses SHA-1 hashing instead of MD5.		      	Provides consistent UUIDs based on input.
 ```
 		
 		
@@ -969,6 +1096,114 @@ UUID5		Similar to UUID3 but uses SHA-1 hashing instead of MD5.				Provides consi
 	department = charfield
 	
 2. 
+
+
+# Handling multiple forms inside single view -
+
+1. Make a template to handle multiple forms -
+	```html
+	<form method="post" enctype="multipart/form-data">
+		{{ form_one }}
+		
+		<button type="submit" name="form_one">Submit</form>
+	</form
+	
+	<form method="post">
+		{{ form_two }}
+		
+		<button type="submit" name="form_two">Submit</form>
+	</form>
+	```
+	
+	**Note** - 
+		1. **Must add a name in the button. This name will be used to distinguish between two form submissions.**
+		
+		2. If any of the form accepts files, then set accordingly either using django variables(include html), or writing each form seperately.
+	
+2. views.py -
+	```python
+	def multiformview(request):
+		if request.method == "POST:
+			if "form_one" in request.POST:
+				form = FormOne(request.POST, request.FILES, prefix="first_form")
+				if form.is_valid():
+					form.save()
+					
+					return redirect("/")
+					
+			if "form_two" in request.POST:
+				form = FormTwo(request.POST, prefix="sec_form")
+				if form.is_valid():
+					form.save()
+					
+					return redirect("/")
+		
+		else:
+			form_one = FormOne(prefix="first_form")		# Setting prefixes
+			form_two = FormTwo(prefix="sec_form")
+			
+		data = {
+			"form_one":form_one,
+			"form_two":form_two
+		}
+		
+		return render(request, "abc.html", data)
+	```
+	
+	**Note** -
+		1. Prefixes are used to help distinguish between two seperate forms. It adds a name on each django form component which is provided in prefix.
+		
+		2. The button name is used to distinguish between multiple forms by checking which name exists in current submission.
+		
+**POST data** - here 'first_form' is the prefix used in view forms. 'form_one' is the button name which also gets passed in form data.
+	```
+	<QueryDict: {'csrfmiddlewaretoken': ['J3g8xxxxxxxxxxxx'], 
+	'first_form-title': ['Plan of portfolio site'], 'first_form-description': ['Here is the plan of the portfolio site'], 'first_form-category': ['2'], 'form_one': ['']}>
+	```
+	
+	
+# Displaying PDFs in django template - (Allow x-frame-origins)
+
+One of the reason why pdf files are not displaying in browser can be - 'X-Frame-Options : Deny'. Open localhost:8000/fileurl and check under network(inspect) in Response headers. All files like txt, pdfs will be now available in html.
+
+**In settings.py** - Add -> X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+
+# For loop range -
+
+**Note** - Django template doesn't support range function so iterables should be passed from from views.
+	
+	views-
+	```
+	data = {
+		"iterables":range(10)
+	}
+	return render(req, "...", data)
+	```
+	
+	html-
+	```html
+	{% for i in iterables %}
+		{{i}}
+	{% endfor %}
+	```
+
+
+# Paginator -
+
+sources - 
+	https://docs.djangoproject.com/en/6.0/topics/pagination/
+
+	https://docs.djangoproject.com/en/6.0/ref/paginator/#django.core.paginator.Paginator
+	
+template
+has_previous - boolean, checks if previous page exists
+has_next - if next page exists
+number - current page number (1-based index)
+previous_page_number - prev page num
+next_page_number - next page num
+	
+
 
 
 
